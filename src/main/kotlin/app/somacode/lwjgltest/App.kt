@@ -59,7 +59,7 @@ class App {
             -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f  // Bottom left  3
     )
 
-    private val elementArray = intArrayOf(
+    val elementArray = intArrayOf(
             /*
                     x1        x2
                     x3        x0
@@ -176,6 +176,9 @@ class App {
             assert(false)
         }
 
+        // Generate VAO, VBO, and EBO buffer objects, and send to GPU
+
+        // Create VAO (Vertex Array Object)
         vaoId = glGenVertexArrays()
         glBindVertexArray(vaoId)
 
@@ -183,7 +186,7 @@ class App {
         val vertexBuffer = BufferUtils.createFloatBuffer(vertexArray.size)
         vertexBuffer.put(vertexArray).flip()
 
-        // Create VBO upload the vertex buffer
+        // Create VBO (Vertex Buffer Object) upload the vertex buffer
         vboId = glGenBuffers()
         glBindBuffer(GL_ARRAY_BUFFER, vboId)
         glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW)
@@ -192,6 +195,7 @@ class App {
         val elementBuffer = BufferUtils.createIntBuffer(elementArray.size)
         elementBuffer.put(elementArray).flip()
 
+        // Create EBO (Element Buffer Object)
         eboId = glGenBuffers()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementBuffer, GL_STATIC_DRAW)
@@ -201,6 +205,7 @@ class App {
         val colorSize = 4
         val floatSizeBytes = 4
         val vertexSizeBytes = (positionsSize + colorSize) * floatSizeBytes
+
         glVertexAttribPointer(0, positionsSize, GL_FLOAT, false, vertexSizeBytes, 0)
         glEnableVertexAttribArray(0)
 
