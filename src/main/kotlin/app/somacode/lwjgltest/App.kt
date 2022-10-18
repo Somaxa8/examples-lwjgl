@@ -8,6 +8,7 @@ import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.glBindVertexArray
@@ -53,10 +54,22 @@ class App {
 
     val vertexArray = floatArrayOf(
             // position         // color
-            0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f, // Bottom right 0
-            -0.5f, 0.5f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f, // Top left     1
-            0.5f, 0.5f, 0.0f,   1.0f, 0.0f, 1.0f, 1.0f, // Top right    2
-            -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f  // Bottom left  3
+            0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,  0.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+
+            0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,  0.0f, 1.0f, 0.0f, 1.0f,
+            0.0f, -1.0f, -1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+
+            0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            0.0f, -1.0f, -1.0f,  0.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+
+            -1.0f, -1.0f, 1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            0.0f, -1.0f, -1.0f,  0.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+
     )
 
     val elementArray = intArrayOf(
@@ -134,106 +147,6 @@ class App {
         glfwShowWindow(window!!)
     }
 
-    private fun getShaders() {
-        // Compile vertex shader
-        vertexId = glCreateShader(GL_VERTEX_SHADER)
-        glShaderSource(vertexId!!, vertexShaderSrc)
-        glCompileShader(vertexId!!)
-
-        var success = glGetShaderi(vertexId!!, GL_COMPILE_STATUS)
-
-        if (success == GL_FALSE) {
-            val len = glGetShaderi(vertexId!!, GL_INFO_LOG_LENGTH)
-            println("Vertex shader compilation failed")
-            println(glGetShaderInfoLog(vertexId!!, len))
-            assert(false)
-        }
-
-        // Compile fragment shader
-        fragmentId = glCreateShader(GL_FRAGMENT_SHADER)
-        glShaderSource(fragmentId!!, fragmentShaderSrc)
-        glCompileShader(fragmentId!!)
-
-        success = glGetShaderi(fragmentId!!, GL_COMPILE_STATUS)
-
-        if (success == GL_FALSE) {
-            val len = glGetShaderi(fragmentId!!, GL_INFO_LOG_LENGTH)
-            println("Fragment shader compilation failed")
-            println(glGetShaderInfoLog(fragmentId!!, len))
-            assert(false)
-        }
-
-        shaderProgram = glCreateProgram()
-        glAttachShader(shaderProgram!!, vertexId!!)
-        glAttachShader(shaderProgram!!, fragmentId!!)
-        glLinkProgram(shaderProgram!!)
-
-        success = glGetProgrami(shaderProgram!!, GL_LINK_STATUS)
-        if (success == GL_FALSE) {
-            val len = glGetProgrami(shaderProgram!!, GL_INFO_LOG_LENGTH)
-            println("Linking of shaders failed")
-            println(glGetProgramInfoLog(shaderProgram!!, len))
-            assert(false)
-        }
-
-        // Generate VAO, VBO, and EBO buffer objects, and send to GPU
-
-        // Create VAO (Vertex Array Object)
-        vaoId = glGenVertexArrays()
-        glBindVertexArray(vaoId)
-
-        // Create float buffer of vertices
-        val vertexBuffer = BufferUtils.createFloatBuffer(vertexArray.size)
-        vertexBuffer.put(vertexArray).flip()
-
-        // Create VBO (Vertex Buffer Object) upload the vertex buffer
-        vboId = glGenBuffers()
-        glBindBuffer(GL_ARRAY_BUFFER, vboId)
-        glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW)
-
-        // Create the indices and upload
-        val elementBuffer = BufferUtils.createIntBuffer(elementArray.size)
-        elementBuffer.put(elementArray).flip()
-
-        // Create EBO (Element Buffer Object)
-        eboId = glGenBuffers()
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementBuffer, GL_STATIC_DRAW)
-
-        // Add the vertex attribute pointers
-        val positionsSize = 3
-        val colorSize = 4
-        val floatSizeBytes = 4
-        val vertexSizeBytes = (positionsSize + colorSize) * floatSizeBytes
-
-        glVertexAttribPointer(0, positionsSize, GL_FLOAT, false, vertexSizeBytes, 0)
-        glEnableVertexAttribArray(0)
-
-        glVertexAttribPointer(1, colorSize, GL_FLOAT, false, vertexSizeBytes, (positionsSize * floatSizeBytes).toLong())
-        glEnableVertexAttribArray(1)
-    }
-
-    private fun draw() {
-        // Bind shader program
-        glUseProgram(shaderProgram!!)
-        // Bind the VAO that we're using
-        glBindVertexArray(vaoId)
-
-        // Enable the vertex attribute pointers
-        glEnableVertexAttribArray(0)
-        glEnableVertexAttribArray(1)
-
-        glDrawElements(GL_TRIANGLES, elementArray.size, GL_UNSIGNED_INT, 0)
-
-        // Unbind everything
-        glDisableVertexAttribArray(0)
-        glDisableVertexAttribArray(1)
-
-        glBindVertexArray(0)
-
-        glUseProgram(0)
-    }
-
     private fun loop() {
         // This line is critical for LWJGL's interoperation with GLFW's
         // OpenGL context, or any context that is managed externally.
@@ -242,7 +155,7 @@ class App {
         // bindings available for use.
         GL.createCapabilities()
 
-        getShaders()
+        var rtri = 0f
 
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
@@ -251,10 +164,50 @@ class App {
             // invoked during this call.
             glfwPollEvents()
             // Set the clear color
-            glClearColor(0f, 0f, 0f, 0f)
+            glClearColor(1f, 1f, 1f, 0f)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) // clear the framebuffer
 
-            draw()
+            // Draw
+
+            glLoadIdentity()                                // Reset The View
+            glTranslatef(0.0f,0.0f,-1.0f)          // Move Left And Into The Screen
+            glRotatef(rtri ,0.0f, 1.0f, 0.0f)  // Rotate The Pyramid On It's Y Axis
+
+            glBegin(GL_TRIANGLES)
+
+            glColor3f(1.0f,0.0f,0.0f)       // Red
+            glVertex3f(0.0f, 1.0f, 0.0f)          // Top Of Triangle (Front)
+            glColor3f(0.0f,1.0f,0.0f)       // Green
+            glVertex3f(-1.0f,-1.0f, 1.0f)          // Left Of Triangle (Front)
+            glColor3f(0.0f,0.0f,1.0f)       // Blue
+            glVertex3f(1.0f,-1.0f, 1.0f)          // Right Of Triangle (Front)
+
+            glColor3f(1.0f,0.0f,0.0f)       // Red
+            glVertex3f(0.0f, 1.0f, 0.0f)          // Top Of Triangle (Right)
+            glColor3f(0.0f,0.0f,1.0f)       // Blue
+            glVertex3f(1.0f,-1.0f, 1.0f)          // Left Of Triangle (Right)
+            glColor3f(0.0f,1.0f,0.0f)       // Green
+            glVertex3f(1.0f,-1.0f, -1.0f)         // Right Of Triangle (Right)
+
+            glColor3f(1.0f,0.0f,0.0f)       // Red
+            glVertex3f(0.0f, 1.0f, 0.0f)          // Top Of Triangle (Back)
+            glColor3f(0.0f,1.0f,0.0f)       // Green
+            glVertex3f(1.0f,-1.0f, -1.0f)         // Left Of Triangle (Back)
+            glColor3f(0.0f,0.0f,1.0f)       // Blue
+            glVertex3f(-1.0f,-1.0f, -1.0f)         // Right Of Triangle (Back)
+
+            glColor3f(1.0f,0.0f,0.0f)       // Red
+            glVertex3f(0.0f, 1.0f, 0.0f)          // Top Of Triangle (Left)
+            glColor3f(0.0f,0.0f,1.0f)       // Blue
+            glVertex3f(-1.0f,-1.0f,-1.0f)          // Left Of Triangle (Left)
+            glColor3f(0.0f,1.0f,0.0f)       // Green
+            glVertex3f(-1.0f,-1.0f, 1.0f)          // Right Of Triangle (Left)
+            glEnd()                                         // Done Drawing The Pyramid
+
+            rtri += 0.1f
+            println("Angle: $rtri")
+
+            // End Draw
 
             glfwSwapBuffers(window!!) // swap the color buffers
         }
