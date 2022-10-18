@@ -23,68 +23,6 @@ class App {
     var width: Int = 800
     var height: Int = 600
     var title: String = "My Game"
-
-    var vertexShaderSrc = """
-        #version 330 core
-        layout (location=0) in vec3 aPos;
-        layout (location=1) in vec4 aColor;
-
-        out vec4 fColor;
-
-        void main() {
-            fColor = aColor;
-            gl_Position = vec4(aPos, 1.0);
-        }
-    """.trimIndent()
-
-    var fragmentShaderSrc = """
-        #version 330 core
-
-        in vec4 fColor;
-        out vec4 color;
-
-        void main() {
-            color = fColor;
-        }
-    """.trimIndent()
-
-    var vertexId: Int? = null
-    var fragmentId: Int? = null
-    var shaderProgram: Int? = null
-
-    val vertexArray = floatArrayOf(
-            // position         // color
-            0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-            -1.0f, -1.0f, 1.0f,  0.0f, 1.0f, 0.0f, 1.0f,
-            1.0f, -1.0f, 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-
-            0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-            -1.0f, -1.0f, 1.0f,  0.0f, 1.0f, 0.0f, 1.0f,
-            0.0f, -1.0f, -1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-
-            0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-            0.0f, -1.0f, -1.0f,  0.0f, 1.0f, 0.0f, 1.0f,
-            1.0f, -1.0f, 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-
-            -1.0f, -1.0f, 1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-            0.0f, -1.0f, -1.0f,  0.0f, 1.0f, 0.0f, 1.0f,
-            1.0f, -1.0f, 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-
-    )
-
-    val elementArray = intArrayOf(
-            /*
-                    x1        x2
-                    x3        x0
-             */
-            2, 1, 0,  // Top right triangle
-            0, 1, 3 // bottom left triangle
-    )
-
-    var vaoId: Int = 0
-    var vboId: Int = 0
-    var eboId: Int = 0
-
     fun run() {
         println("Test LWJGL ${Version.getVersion()}")
 
